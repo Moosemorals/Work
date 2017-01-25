@@ -9,45 +9,29 @@
         <div id="output"></div>
         <script>
 
-var arrays = [["scaning", "upgrading"], ["brown", "grey", "orange"], ["toast", "kitten"]];
-
-function buildArray() {
-    var args = arguments[0];
-    var result = [];
-    var i, j;
-    for (i = 0; i < args.length; i += 1) {
-        if (typeof args[i] === "number") {
-            result.push(args[i]);  
-        } else {
-            for (j = 0; j < args[i].length; j += 1) {
-                result.push(args[i][j]);
-            }
-        }
-    }    
-    return result;
-}
+var arrays = [["scaning", "upgrading"], ["orange"], ["toast", "kitten"]];
 
 var rows = [];
 
-function buildAlternatives() {
-    var args = buildArray(arguments);
-    var i, depth = args.shift(), row;
+function buildAlternatives(depth, indexes) {
+    var i, row, copy;
     
     if (depth < arrays.length) {
         for (i = 0; i < arrays[depth].length; i += 1) {
-            buildAlternatives(depth + 1, args, i);
+            copy = indexes.slice();
+            copy.push(i);
+            buildAlternatives(depth + 1, copy);
         }   
     } else {
         row = [];
-        for (i = 0; i < args.length; i += 1) {
-            row.push(arrays[i][args[i]]);
+        for (i = 0; i < indexes.length; i += 1) {
+            row.push(arrays[i][indexes[i]]);
         }
         rows.push(row);
     }
 }
 
-buildAlternatives(0);
-
+buildAlternatives(0, []);
 
 var scratch, i, output = document.getElementById("output");
 for (i = 0; i < rows.length; i += 1) {
