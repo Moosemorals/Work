@@ -31,8 +31,20 @@ window.SVG = function (options) {
         }
     }
 
-    function addCircle(x, y, radius) {
-        _add(buildElement("circle", "cx", x, "cy", y, "r", radius));
+    function buildTitle(text) {
+        var title = document.createElement("title");
+        title.appendChild(document.createTextNode(text));
+        return title;
+    }
+
+    function addCircle(x, y, radius, title) {
+        var circle = buildElement("circle", "cx", x, "cy", y, "r", radius);
+        if (title !== undefined) {
+            circle.appendChild(buildTitle(title));
+        }
+
+        _add(circle);
+        return circle;
     }
 
     function addLine(x1, y1, x2, y2) {
@@ -64,6 +76,10 @@ window.SVG = function (options) {
         return g;
     }
 
+    function add(el) {
+        svg.appendChild(el);
+    }
+
     function leaveGroup() {
         groupStack.pop();
     }
@@ -79,6 +95,7 @@ window.SVG = function (options) {
         drawText: addText,
         startGroup: createGroup,
         endGroup: leaveGroup,
+        add: add,
         getSVG, svg
     };
 
@@ -88,21 +105,63 @@ $(function () {
     "use strict";
 
     var svg = SVG();
-    var SPACING = 20;
+    var SPACING = 30;
 
     var process;
 
+    function findPath(start, end, visited, path) {
+
+        visited[start] = true;
+        path.push(start);
+        if (start === end) {
+            console.log(path);
+        } else {
+            process.flow[start].next.forEach(function (id) {
+                if (!visited[id]) {
+                    findPath(id, end, visited, path);
+                }
+            });
+        }
+        path.pop();
+        visited[start] = false;
+    }
+
+    function lookupText(id) {
+        var phrase = process.phrases[id];
+        if (Array.isArray(phrase)) {
+            return phrase[0];
+        } else {
+            return phrase;
+        }
+    }
+
+    function printAllPaths(start, end) {
+        var visited = {};
+        var path = [];
+        Object.keys(process.flow).forEach(function (id) {
+            visited[id] = false;
+        });
+        findPath(start, end, visited, path);
+    }
+
     function drawNode(id, depth, visited, parent) {
         if (id !== "end") {
-
             visited[id] = true;
         }
 
-        var i, group, width, w, groups = [], bbox;
+        var i, group, width, w, groups = [], bbox, circle, labelGroup;
         var node = process.flow[id];
 
         width = 1;
-        svg.drawCircle(0, 0, SPACING / 2);
+        labelGroup = svg.startGroup();
+        circle = svg.drawCircle(0, 0, SPACING / 2);
+        circle.dataset.text = node.text;
+        circle.dataset.id = id;
+
+        if (parent !== undefined) {
+            circle.dataset.parent = parent;
+        }
+
         svg.startGroup("fill", "white", "text-anchor", "middle");
         switch (id) {
             case "start":
@@ -115,11 +174,8 @@ $(function () {
                 svg.drawText(0, SPACING / 4, id);
         }
         svg.endGroup();
+        svg.endGroup();
         
-        if (parent !== null) {
-            
-        }
-
         var children = node.next;
         if (children === undefined) {
             return width;
@@ -130,23 +186,54 @@ $(function () {
                 continue;
             }
             group = svg.startGroup("fill", "black");
-            w = drawNode(children[i], depth + 1, Object.assign(visited), group);
+            w = drawNode(children[i], depth + 1, Object.assign(visited), id);
             if (w > width) {
                 width = w;
             }
             svg.endGroup();
-            if (groups.length > 0) {
-                bbox = groups[groups.length - 1].getBoundingClientRect();
-                //group.setAttribute("transform", "translate(" + (SPACING * width) + "," + (bbox.bottom) + ")");
-                group.setAttribute("transform", "translate(" + bbox.right + "," + (SPACING * width)  + ")");                
-            } else {
-                //group.setAttribute("transform", "translate(" + (SPACING * width) + "," + 0 + ")");
-                group.setAttribute("transform", "translate(" + 0 + "," + (SPACING * width) + ")");                
-            }
             groups.push(group);
+        }
+        for (i = 0; i < groups.length; i += 1) {
+            if (i > 0) {
+                bbox = groups[i - 1].getBoundingClientRect();
+                groups[i].setAttribute("transform", "translate(" + bbox.right + "," + (SPACING) + ")");
+            } else {
+                groups[i].setAttribute("transform", "translate(" + 0 + "," + (SPACING ) + ")");
+            }
         }
         
         return children.length;
+    }
+
+    function drawEdges() {
+        var root = svg.getSVG().querySelector("g > circle");
+        var rootBB = root.getBoundingClientRect();
+        
+        var group = svg.startGroup("stroke", "green");
+        document.querySelectorAll("svg circle").forEach(function (node) {
+            var parent, myBB, parentBB;
+            if (!node.dataset.parent) {
+                return;
+            }
+
+            parent = node.parentNode.parentNode.querySelector("circle");
+
+            myBB = node.getBoundingClientRect();
+            parentBB = parent.getBoundingClientRect();
+
+            svg.drawLine(myBB.left + (SPACING ) - rootBB.left, myBB.top + (SPACING ) -rootBB.top, parentBB.left + (SPACING ) - rootBB.left, parentBB.top + (SPACING ) - rootBB.top);
+        });
+        svg.endGroup();
+
+        svg.getSVG().insertBefore(group, svg.getSVG().firstChild);
+    }
+
+    function buildAlert(type, text) {
+        var div = document.createElement("div");
+        div.classList.add("alert");
+        div.classList.add("alert-" + type);
+        div.appendChild(document.createTextNode(text));
+        return div;
     }
 
     function handleLoad(json) {
@@ -156,10 +243,21 @@ $(function () {
         drawNode("start", 0, {});
         svg.endGroup();
 
+        drawEdges();
+
+        $(svg).on("mouseenter", "circle", function () {
+            console.log("hello");
+            $("#alert").empty().append(buildAlert("success", lookupText(parseInt(this.dataset.text))));
+        }).on("mouseleave", "circle", function () {
+            $("#alert").empty().append(buildAlert("success", ""));
+        });
 
     }
 
     $.getJSON("oct9001.json")
-            .done(handleLoad);
+            .done(handleLoad
+                    );
+
+
 
 });
