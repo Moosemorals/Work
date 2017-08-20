@@ -29,6 +29,7 @@ window.SVG = function (options) {
         } else {
             svg.appendChild(el);
         }
+        return el;
     }
 
     function buildTitle(text) {
@@ -48,17 +49,17 @@ window.SVG = function (options) {
     }
 
     function addLine(x1, y1, x2, y2) {
-        addPath(["M", x1, y1, "L", x2, y2].join(" "));
+        return addPath(["M", x1, y1, "L", x2, y2].join(" "));
     }
 
     function addPath(path) {
-        _add(buildElement("path", "d", path));
+        return _add(buildElement("path", "d", path));
     }
 
     function addText(x, y, string) {
         var text = buildElement("text", "x", x, "y", y);
         text.appendChild(document.createTextNode(string));
-        _add(text);
+        return _add(text);
     }
 
     function createGroup() {
@@ -88,6 +89,7 @@ window.SVG = function (options) {
     }
     function add(el) {
         svg.appendChild(el);
+        return el;
     }
 
     function leaveGroup() {
@@ -157,17 +159,15 @@ $(function () {
     }
 
     function drawNode(id, depth, visited, parent) {
-        if (id !== "end") {
-            visited[id] = true;
-        }
 
-        var i, group, width, w, groups = [], bbox, circle, labelGroup, parentGroup;
+        var i, groups = [], bbox, circle, labelGroup, parentGroup;
         var node = process.flow[id];
 
         labelGroup = svg.startGroup();
         circle = svg.drawCircle(0, 0, (SPACING / 2));
         circle.dataset.text = node.text;
         circle.dataset.id = id;
+        circle.classList.add(node.type.substring(0, node.type.length - "Stanza".length));
 
         if (parent !== undefined) {
             circle.dataset.parent = parent;
@@ -192,14 +192,18 @@ $(function () {
             return;
         }
 
+        if (id in visited) {
+            circle.classList.add("loop");
+            return;
+        }
+        if (id !== "end") {
+            visited[id] = true;
+        }
+
         for (i = 0; i < children.length; i += 1) {
-            if (children[i] in visited) {
-                continue;
-            }
-            group = svg.startGroup("fill", "black");
+            groups.push(svg.startGroup());
             drawNode(children[i], depth + 1, Object.assign(visited), id);
             svg.endGroup();
-            groups.push(group);
         }
         for (i = 0; i < groups.length; i += 1) {
             if (i > 0) {
@@ -222,12 +226,14 @@ $(function () {
         var root = svg.getSVG();
         var rootBB = root.getBoundingClientRect();
 
-        var group = svg.startGroup("stroke", "green", "fill", "none", "transform", "translate(" + -rootBB.left + "," + -rootBB.top + ")");
+        var group = svg.startGroup("class", "edge", "transform", "translate(" + -rootBB.left + "," + -rootBB.top + ")");
         svg.drawLine(0, 0, 0, 100);
         svg.drawLine(0, 0, 100, 0);
         document.querySelectorAll("svg circle").forEach(function (node) {
-            var parent, myBB, parentBB;
-            if (!node.dataset.parent) {
+            var parent, myBB, parentBB, myId, parentId, line;
+            myId = node.dataset.id;
+            parentId = node.dataset.parent;
+            if (!parentId) {
                 return;
             }
 
@@ -237,26 +243,40 @@ $(function () {
             parentBB = parent.getBoundingClientRect();
 
             var start = {
-                x :myBB.left + myBB.width / 2, 
+                x: myBB.left + myBB.width / 2,
                 y: myBB.top
             };
             var end = {
                 x: parentBB.left + parentBB.width / 2,
                 y: parentBB.bottom
             };
-                        
-            svg.drawPath([
+
+            line = svg.drawPath([
                 "M", start.x, start.y,
                 "L", start.x, start.y - (SPACING / 3),
                 "L", end.x, start.y - (SPACING / 3),
                 "L", end.x, end.y
             ].join(" "));
 
-            
+            if ("answers" in process.flow[parentId]) {
+                process.flow[parentId].next.forEach(function (id, index) {
+                    if (id === myId) {
+                        line.dataset.text = process.flow[parentId].answers[index];
+                    }
+                });
+            }
+
         });
         svg.endGroup();
 
         svg.getSVG().insertBefore(group, svg.getSVG().firstChild);
+    }
+
+    function alert(type, text) {
+        $("#alert").empty();
+        if (arguments.length === 2) {
+            $("#alert").append(buildAlert(type, text));
+        } 
     }
 
     function buildAlert(type, text) {
@@ -269,27 +289,39 @@ $(function () {
 
     function handleLoad(json) {
         process = json;
-        document.querySelector("#holder").appendChild(svg.getSVG());
+
+        var svgNode = svg.getSVG();
+
+        document.querySelector("#holder").appendChild(svgNode);
         svg.startGroup("fill", "black", "transform", "translate(" + (SPACING / 2) + "," + (SPACING / 2) + ")");
         drawNode("start", 0, {});
         svg.endGroup();
         drawEdges();
 
-        var bbox = svg.getSVG().firstChild.getBBox();
-        svg.getSVG().setAttribute("width", bbox.width);
-        svg.getSVG().setAttribute("height", bbox.height);
+        var bbox = svgNode.firstChild.getBBox();
+        svgNode.setAttribute("width", bbox.width);
+        svgNode.setAttribute("height", bbox.height);
 
-        svg.getSVG().addEventListener("mouseenter", function (e) {
-            if (e.target.nodeName === "circle") {
-                console.log(lookupText(parseInt(e.target.dataset.text)));
-            }            
+        svgNode.addEventListener("mousemove", function (e) {
+            var target = e.target;
+            
+            console.log("in " + target.nodeName);
+            
+            while (target !== null && target !== svgNode && !("text" in target.dataset)) {
+                target = target.parentNode;
+            }
+                                    
+            if ("text" in target.dataset) {
+                alert("success", lookupText(parseInt(target.dataset.text)));
+            } else {
+                alert();
+            }
         }, true);
-
+      
     }
 
     $.getJSON("oct9001.json")
-            .done(handleLoad
-                    );
+            .done(handleLoad);
 
 
 

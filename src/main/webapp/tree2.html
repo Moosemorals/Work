@@ -12,6 +12,39 @@
                 left: 25px;
             }
             
+            svg {
+                fill: none;
+                stroke: none;
+            }
+            
+            circle.Instruction {
+                fill: blue;
+            }
+            
+            circle.Question {
+                fill: green;
+            }
+            
+            circle.End {
+                fill: coral;
+            }
+            
+            circle.loop {
+                fill: red;
+            }
+            
+            circle.Important::after {
+                content: "!";
+            }
+            
+            svg .edge {
+                stroke: green;
+                stroke-width: 3px;
+                stroke-linejoin: round;
+                stroke-lineend: round;
+                fill: none;
+            }
+            
         </style>
     </head>
     <body>

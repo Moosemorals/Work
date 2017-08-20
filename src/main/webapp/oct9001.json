@@ -114,12 +114,12 @@
             "type": "QuestionStanza",
             "text": 20,
             "answers": [
-                21,
-                22
+                22,
+                21
             ],
             "next": [
-                "8",
-                "24"
+                "24",
+                "8"
             ],
             "stack": false
         },
