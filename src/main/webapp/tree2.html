@@ -12,31 +12,46 @@
                 left: 25px;
             }
             
+            .flash {
+                animation: flash 0.4s infinite cubic-bezier(0.645, 0.045, 0.355, 1);
+            }
+            
+            @keyframes flash {                
+                50% {
+                    opacity: 0;
+                }                
+            }            
+            
             svg {
                 fill: none;
                 stroke: none;
             }
             
-            circle.Instruction {
-                fill: blue;
+            svg text {
+                fill: white;
+                text-anchor: middle;
             }
-            
-            circle.Question {
-                fill: green;
-            }
-            
-            circle.End {
+
+            svg .Important {
                 fill: coral;
             }
             
-            circle.loop {
+            svg .Instruction {
+                fill: blue;
+            }
+            
+            svg .Question {
+                fill: green;
+            }
+            
+            svg .End {
+                fill: yellow;
+            }
+            
+            svg .loop {
                 fill: red;
             }
-            
-            circle.Important::after {
-                content: "!";
-            }
-            
+
             svg .edge {
                 stroke: green;
                 stroke-width: 3px;

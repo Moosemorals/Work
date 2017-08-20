@@ -160,20 +160,25 @@ $(function () {
 
     function drawNode(id, depth, visited, parent) {
 
-        var i, groups = [], bbox, circle, labelGroup, parentGroup;
+        var i, groups = [], bbox, circle, labelGroup, parentGroup, type;
         var node = process.flow[id];
+        
+        type = node.type.substring(0, node.type.length - "Stanza".length);
 
-        labelGroup = svg.startGroup();
-        circle = svg.drawCircle(0, 0, (SPACING / 2));
-        circle.dataset.text = node.text;
-        circle.dataset.id = id;
-        circle.classList.add(node.type.substring(0, node.type.length - "Stanza".length));
-
+        labelGroup = svg.startGroup("class", "label");
+        
+        labelGroup.dataset.text = node.text;
+        labelGroup.dataset.id = id;
+        labelGroup.classList.add(type);
+        labelGroup.classList.add("id-" + id);
+        
+        circle = svg.drawCircle(0, 0, (SPACING / 2));        
+        
         if (parent !== undefined) {
             circle.dataset.parent = parent;
         }
 
-        svg.startGroup("fill", "white", "text-anchor", "middle");
+        svg.startGroup();
         switch (id) {
             case "start":
                 svg.drawText(0, SPACING / 4, "s");
@@ -193,7 +198,7 @@ $(function () {
         }
 
         if (id in visited) {
-            circle.classList.add("loop");
+            labelGroup.classList.add("loop");
             return;
         }
         if (id !== "end") {
@@ -264,6 +269,7 @@ $(function () {
                         line.dataset.text = process.flow[parentId].answers[index];
                     }
                 });
+                line.classList.add("answer");
             }
 
         });
@@ -302,22 +308,38 @@ $(function () {
         svgNode.setAttribute("width", bbox.width);
         svgNode.setAttribute("height", bbox.height);
 
-        svgNode.addEventListener("mousemove", function (e) {
-            var target = e.target;
+        $(svgNode).find(".label").each(function () {
+            var node = process.flow[this.dataset.id];            
+            var type = node.type.substring(0, node.type.length - "Stanza".length);            
+            var options = {
+                title: type,
+                trigger: "hover"
+            };
             
-            console.log("in " + target.nodeName);
-            
-            while (target !== null && target !== svgNode && !("text" in target.dataset)) {
-                target = target.parentNode;
-            }
-                                    
-            if ("text" in target.dataset) {
-                alert("success", lookupText(parseInt(target.dataset.text)));
+            if (type !== "End") {
+                options.content = lookupText(node.text);                
             } else {
-                alert();
+                options.template = '<div class="popover" role="tooltip"><div class="popover-arrow"></div><h3 class="popover-title"></h3></div>';
             }
-        }, true);
-      
+                        
+            $(this).popover(options);            
+        });
+        
+        $(svgNode).on("mouseover", ".loop", function () {
+            var id = this.dataset.id;
+            $(svgNode).find(".id-" + id).addClass("flash");
+        }).on("mouseout", ".loop", function () {
+            var id = this.dataset.id;
+            $(svgNode).find(".id-" + id).removeClass("flash");
+        });
+        
+        $(svgNode).find(".answer").each(function () {
+           var answer = lookupText(parseInt(this.dataset.text));
+           $(this).popover({
+               content: answer,
+               trigger: "hover"
+           });
+        });
     }
 
     $.getJSON("oct9001.json")
