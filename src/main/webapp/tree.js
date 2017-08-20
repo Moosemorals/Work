@@ -162,23 +162,21 @@ $(function () {
 
         var i, groups = [], bbox, circle, labelGroup, parentGroup, type;
         var node = process.flow[id];
-        
+
         type = node.type.substring(0, node.type.length - "Stanza".length);
 
         labelGroup = svg.startGroup("class", "label");
-        
         labelGroup.dataset.text = node.text;
         labelGroup.dataset.id = id;
         labelGroup.classList.add(type);
         labelGroup.classList.add("id-" + id);
-        
-        circle = svg.drawCircle(0, 0, (SPACING / 2));        
-        
+
+        circle = svg.drawCircle(0, 0, (SPACING / 2));
+
         if (parent !== undefined) {
             circle.dataset.parent = parent;
         }
 
-        svg.startGroup();
         switch (id) {
             case "start":
                 svg.drawText(0, SPACING / 4, "s");
@@ -189,7 +187,6 @@ $(function () {
             default:
                 svg.drawText(0, SPACING / 4, id);
         }
-        svg.endGroup();
         svg.endGroup();
 
         var children = node.next;
@@ -282,7 +279,7 @@ $(function () {
         $("#alert").empty();
         if (arguments.length === 2) {
             $("#alert").append(buildAlert(type, text));
-        } 
+        }
     }
 
     function buildAlert(type, text) {
@@ -291,6 +288,89 @@ $(function () {
         div.classList.add("alert-" + type);
         div.appendChild(document.createTextNode(text));
         return div;
+    }
+
+    function findClosest(source, targetClass) {
+        var svgNode = svg.getSVG();
+        while (source !== svgNode && !source.classList.contains(targetClass)) {
+            source = source.parentNode;
+        }
+
+        if (source.classList.contains("label")) {
+            return source;
+        } else {
+            return undefined;
+        }
+    }
+
+    var dragData;
+    function mouseDownHandler(e) {
+        var bbox;
+        var svgNode = svg.getSVG();
+        var target = findClosest(e.target, "label");
+        if (target === undefined) {
+            return;
+        }
+
+        target.classList.add("dragSource");
+
+        bbox = target.getBoundingClientRect();
+
+        dragData = {};
+        dragData.offsetX = bbox.left + window.scrollX;
+        dragData.offsetY = bbox.top + window.scrollY - SPACING;
+        dragData.startX = e.offsetX;
+        dragData.startY = e.offsetY;
+        dragData.dragSource = target;
+        dragData.dragImage = target.cloneNode(true);
+
+        svgNode.appendChild(dragData.dragImage);
+        dragData.dragImage.setAttribute("transform", "translate(" + dragData.offsetX + ", " + dragData.offsetY + ")");
+
+
+        svgNode.addEventListener("mousemove", mouseMoveHandler);
+        svgNode.addEventListener("mouseup", mouseUpHandler);
+    }
+
+    function mouseMoveHandler(e) {
+
+        var offsetX = dragData.offsetX + (e.offsetX - dragData.startX);
+        var offsetY = dragData.offsetY + (e.offsetY - dragData.startY);
+
+        dragData.dragImage.setAttribute("transform", "translate(" + offsetX + ", " + offsetY + ")");
+
+        var target = findClosest(document.elementFromPoint(e.clientX, e.clientY), "label");
+        if (target !== undefined) {
+
+            if (dragData.over !== target) {
+                if (dragData.over !== undefined) {
+                    dragData.over.classList.remove("dragOver");
+                }
+                target.classList.add("dragOver");
+                dragData.over = target;
+            }
+        } else {
+            if (dragData.over !== undefined) {
+                dragData.over.classList.remove("dragOver");
+                delete dragData.over;
+            }
+        }
+    }
+
+    function mouseUpHandler(e) {
+        var svgNode = svg.getSVG();
+
+        if (dragData.over !== undefined) {
+            dragData.over.classList.remove("dragOver");
+        }
+
+        dragData.dragSource.classList.remove("dragSource");
+
+        dragData.dragImage.parentNode.removeChild(dragData.dragImage);
+
+        dragData = {};
+        svgNode.removeEventListener("mousemove", mouseMoveHandler);
+        svgNode.removeEventListener("mouseup", mouseUpHandler);
     }
 
     function handleLoad(json) {
@@ -309,22 +389,28 @@ $(function () {
         svgNode.setAttribute("height", bbox.height);
 
         $(svgNode).find(".label").each(function () {
-            var node = process.flow[this.dataset.id];            
-            var type = node.type.substring(0, node.type.length - "Stanza".length);            
+            var node = process.flow[this.dataset.id];
+            var type = node.type.substring(0, node.type.length - "Stanza".length);
             var options = {
                 title: type,
-                trigger: "hover"
+                trigger: "hover",
+                delay: {show: 2000, hide: 300}
             };
-            
+
             if (type !== "End") {
-                options.content = lookupText(node.text);                
+                options.content = lookupText(node.text);
             } else {
                 options.template = '<div class="popover" role="tooltip"><div class="popover-arrow"></div><h3 class="popover-title"></h3></div>';
             }
-                        
-            $(this).popover(options);            
+
+            $(this).popover(options);
         });
-        
+
+
+
+
+        svgNode.addEventListener("mousedown", mouseDownHandler);
+
         $(svgNode).on("mouseover", ".loop", function () {
             var id = this.dataset.id;
             $(svgNode).find(".id-" + id).addClass("flash");
@@ -332,13 +418,13 @@ $(function () {
             var id = this.dataset.id;
             $(svgNode).find(".id-" + id).removeClass("flash");
         });
-        
+
         $(svgNode).find(".answer").each(function () {
-           var answer = lookupText(parseInt(this.dataset.text));
-           $(this).popover({
-               content: answer,
-               trigger: "hover"
-           });
+            var answer = lookupText(parseInt(this.dataset.text));
+            $(this).popover({
+                content: answer,
+                trigger: "hover"
+            });
         });
     }
 

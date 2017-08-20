@@ -11,22 +11,43 @@
                 top: 57px;
                 left: 25px;
             }
-            
+
             .flash {
                 animation: flash 0.4s infinite cubic-bezier(0.645, 0.045, 0.355, 1);
             }
-            
+
             @keyframes flash {                
                 50% {
                     opacity: 0;
                 }                
             }            
+
+            svg .dragOver {
+                stroke: green;
+                stroke-width: 4px;
+            }
             
+            svg .dragSource {
+                opacity: 0.5;
+            }
+            
+            svg text {
+                cursor: default;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+
+            svg .overlay {
+                opacity: 0;
+            }
+
             svg {
                 fill: none;
                 stroke: none;
             }
-            
+
             svg text {
                 fill: white;
                 text-anchor: middle;
@@ -35,19 +56,19 @@
             svg .Important {
                 fill: coral;
             }
-            
+
             svg .Instruction {
                 fill: blue;
             }
-            
+
             svg .Question {
                 fill: green;
             }
-            
+
             svg .End {
                 fill: yellow;
             }
-            
+
             svg .loop {
                 fill: red;
             }
@@ -59,7 +80,7 @@
                 stroke-lineend: round;
                 fill: none;
             }
-            
+
         </style>
     </head>
     <body>
