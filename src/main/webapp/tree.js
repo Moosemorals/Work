@@ -48,7 +48,10 @@ window.SVG = function (options) {
     }
 
     function addLine(x1, y1, x2, y2) {
-        var path = ["M", x1, y1, "L", x2, y2].join(" ");
+        addPath(["M", x1, y1, "L", x2, y2].join(" "));
+    }
+
+    function addPath(path) {
         _add(buildElement("path", "d", path));
     }
 
@@ -76,6 +79,13 @@ window.SVG = function (options) {
         return g;
     }
 
+    function getGroup() {
+        if (groupStack.length > 0) {
+            return groupStack[groupStack.length - 1];
+        } else {
+            return undefined;
+        }
+    }
     function add(el) {
         svg.appendChild(el);
     }
@@ -93,7 +103,9 @@ window.SVG = function (options) {
         drawCircle: addCircle,
         drawLine: addLine,
         drawText: addText,
+        drawPath: addPath,
         startGroup: createGroup,
+        getGroup: getGroup,
         endGroup: leaveGroup,
         add: add,
         getSVG, svg
@@ -149,12 +161,11 @@ $(function () {
             visited[id] = true;
         }
 
-        var i, group, width, w, groups = [], bbox, circle, labelGroup;
+        var i, group, width, w, groups = [], bbox, circle, labelGroup, parentGroup;
         var node = process.flow[id];
 
-        width = 1;
         labelGroup = svg.startGroup();
-        circle = svg.drawCircle(0, 0, SPACING / 2);
+        circle = svg.drawCircle(0, 0, (SPACING / 2));
         circle.dataset.text = node.text;
         circle.dataset.id = id;
 
@@ -175,10 +186,10 @@ $(function () {
         }
         svg.endGroup();
         svg.endGroup();
-        
+
         var children = node.next;
         if (children === undefined) {
-            return width;
+            return;
         }
 
         for (i = 0; i < children.length; i += 1) {
@@ -186,42 +197,62 @@ $(function () {
                 continue;
             }
             group = svg.startGroup("fill", "black");
-            w = drawNode(children[i], depth + 1, Object.assign(visited), id);
-            if (w > width) {
-                width = w;
-            }
+            drawNode(children[i], depth + 1, Object.assign(visited), id);
             svg.endGroup();
             groups.push(group);
         }
         for (i = 0; i < groups.length; i += 1) {
             if (i > 0) {
                 bbox = groups[i - 1].getBoundingClientRect();
-                groups[i].setAttribute("transform", "translate(" + bbox.right + "," + (SPACING) + ")");
+                groups[i].setAttribute("transform", "translate(" + bbox.right + "," + (SPACING * 1.5) + ")");
             } else {
-                groups[i].setAttribute("transform", "translate(" + 0 + "," + (SPACING ) + ")");
+                groups[i].setAttribute("transform", "translate(" + 0 + "," + (SPACING * 1.5) + ")");
             }
         }
-        
-        return children.length;
+
+        parentGroup = svg.getGroup();
+        if (children.length > 1 && parentGroup !== undefined) {
+            bbox = labelGroup.getBoundingClientRect();
+            labelGroup.setAttribute("transform", "translate(" + (parentGroup.getBoundingClientRect().width / 2 - bbox.width / 2) + ", 0)");
+        }
+        return;
     }
 
     function drawEdges() {
-        var root = svg.getSVG().querySelector("g > circle");
+        var root = svg.getSVG();
         var rootBB = root.getBoundingClientRect();
-        
-        var group = svg.startGroup("stroke", "green");
+
+        var group = svg.startGroup("stroke", "green", "fill", "none", "transform", "translate(" + -rootBB.left + "," + -rootBB.top + ")");
+        svg.drawLine(0, 0, 0, 100);
+        svg.drawLine(0, 0, 100, 0);
         document.querySelectorAll("svg circle").forEach(function (node) {
             var parent, myBB, parentBB;
             if (!node.dataset.parent) {
                 return;
             }
 
-            parent = node.parentNode.parentNode.querySelector("circle");
+            parent = node.parentNode.parentNode.parentNode.querySelector("circle");
 
             myBB = node.getBoundingClientRect();
             parentBB = parent.getBoundingClientRect();
 
-            svg.drawLine(myBB.left + (SPACING ) - rootBB.left, myBB.top + (SPACING ) -rootBB.top, parentBB.left + (SPACING ) - rootBB.left, parentBB.top + (SPACING ) - rootBB.top);
+            var start = {
+                x :myBB.left + myBB.width / 2, 
+                y: myBB.top
+            };
+            var end = {
+                x: parentBB.left + parentBB.width / 2,
+                y: parentBB.bottom
+            };
+                        
+            svg.drawPath([
+                "M", start.x, start.y,
+                "L", start.x, start.y - (SPACING / 3),
+                "L", end.x, start.y - (SPACING / 3),
+                "L", end.x, end.y
+            ].join(" "));
+
+            
         });
         svg.endGroup();
 
@@ -239,18 +270,20 @@ $(function () {
     function handleLoad(json) {
         process = json;
         document.querySelector("#holder").appendChild(svg.getSVG());
-        svg.startGroup("fill", "black", "transform", "translate(" + SPACING + "," + SPACING + ")");
+        svg.startGroup("fill", "black", "transform", "translate(" + (SPACING / 2) + "," + (SPACING / 2) + ")");
         drawNode("start", 0, {});
         svg.endGroup();
-
         drawEdges();
 
-        $(svg).on("mouseenter", "circle", function () {
-            console.log("hello");
-            $("#alert").empty().append(buildAlert("success", lookupText(parseInt(this.dataset.text))));
-        }).on("mouseleave", "circle", function () {
-            $("#alert").empty().append(buildAlert("success", ""));
-        });
+        var bbox = svg.getSVG().firstChild.getBBox();
+        svg.getSVG().setAttribute("width", bbox.width);
+        svg.getSVG().setAttribute("height", bbox.height);
+
+        svg.getSVG().addEventListener("mouseenter", function (e) {
+            if (e.target.nodeName === "circle") {
+                console.log(lookupText(parseInt(e.target.dataset.text)));
+            }            
+        }, true);
 
     }
 
