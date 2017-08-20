@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Tree represnetations</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+        <style type="text/css">
+            * {
+                border: thin solid lightcyan;
+            }
+            
+            .instruction {
+                padding: 4px;
+                margin: 4px auto;
+                width: 3em;
+                display: inline-block;
+            }
+
+            .inner {
+                border: thin solid red;
+                text-align: center;
+                vertical-align: middle;
+                margin: 4px;
+            }
+            .branch { 
+                width: 100%;
+                border-left: 0px solid blue;
+            }
+            .next {
+                width: 100%;
+                border: 4px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="d-flex flex-column branch align-items-center" id="root"></div>
+
+        <script
+            src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+        <script>
+
+            var tree = {
+                "1": {n: ["2"]}
+                , "2": {n: ["3"]}
+                , "3": {n: ["4", "5"]}
+                , "4": {n: ["7", "8", "9"]}
+                , "5": {n: ["6"]}
+                , "6": {n: []}
+                , "7": {n: ["10", "11"]}
+                , "8": {n: []}
+                , "9": {n: []}
+                , "10": {n: []}
+                , "11": {n: []}
+            };
+
+
+            /*
+             *             1
+             *             2
+             *             3
+             *        4          5
+             *   7    8    9     6
+             * 10 11
+             */
+            function buildElement(name, classes, content) {
+                var el = document.createElement(name);
+                var i;
+                if (classes) {
+                    classes = classes.split(/\s+/);
+
+                    for (i = 0; i < classes.length; i += 1) {
+                        el.classList.add(classes[i]);
+                    }
+                }
+
+                if (content) {
+                    el.appendChild(document.createTextNode(content));
+                }
+
+                return el;
+            }
+
+            function drawTree(row, id) {
+                var next, i, node, x, y;
+
+                node = tree[id];
+
+                y = buildElement("div", "inner", id);
+                text = buildElement("div", "instruction");
+                text.appendChild(y);
+
+                if (node.n.length > 1) {
+                    row.appendChild(text);
+
+                    next = buildElement("div", "next d-flex align-middle");
+
+                    for (i = 0; i < node.n.length; i += 1) {
+                        x = buildElement("div", "branch d-flex flex-column");
+                        drawTree(x, node.n[i]);
+                        next.appendChild(x);
+                    }
+
+                    row.appendChild(next);
+                } else if (node.n.length === 1) {
+                    row.appendChild(text);
+                    drawTree(row, node.n[0]);
+
+                } else {
+                    row.appendChild(text);
+                }
+            }
+            
+            function drawBranch(child, parent) {
+                
+            }
+
+            $(function () {
+                var root = document.getElementById("root");
+                drawTree(root, "1");
+            });
+
+        </script>
+    </body>
+</html>

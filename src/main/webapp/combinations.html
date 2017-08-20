@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Start Page</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        <h1>Hello World!</h1>
+        <div id="output"></div>
+        <script>
+
+var arrays = [["scaning", "upgrading"], ["orange", "blue", "green"], ["toast", "kitten"]];
+
+var rows = [];
+
+function buildAlternatives(depth, indexes) {
+    var i, row;
+    
+    if (depth < arrays.length) {
+        for (i = 0; i < arrays[depth].length; i += 1) {
+            buildAlternatives(depth + 1, indexes.concat(i));
+        }   
+    } else {
+        row = [];
+        for (i = 0; i < indexes.length; i += 1) {
+            row.push(arrays[i][indexes[i]]);
+        }
+        rows.push(row);
+    }
+}
+
+buildAlternatives(0, []);
+
+var scratch, i, output = document.getElementById("output");
+for (i = 0; i < rows.length; i += 1) {
+    scratch = document.createElement("div");
+    scratch.appendChild(document.createTextNode(JSON.stringify(rows[i])));
+    output.appendChild(scratch);
+}        
+       
+        </script>
+    </body>
+</html>
