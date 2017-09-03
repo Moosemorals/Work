@@ -158,18 +158,16 @@ $(function () {
         findPath(start, end, visited, path);
     }
 
-    function drawNode(id, depth, visited, parent) {
-
-        var i, groups = [], bbox, circle, labelGroup, parentGroup, type;
-        var node = process.flow[id];
+    function drawLabel(node, id, parent) {
+        var result, circle, type;
 
         type = node.type.substring(0, node.type.length - "Stanza".length);
 
-        labelGroup = svg.startGroup("class", "label");
-        labelGroup.dataset.text = node.text;
-        labelGroup.dataset.id = id;
-        labelGroup.classList.add(type);
-        labelGroup.classList.add("id-" + id);
+        result = svg.startGroup("class", "label");
+        result.dataset.text = node.text;
+        result.dataset.id = id;
+        result.classList.add(type);
+        result.classList.add("id-" + id);
 
         circle = svg.drawCircle(0, 0, (SPACING / 2));
 
@@ -189,39 +187,56 @@ $(function () {
         }
         svg.endGroup();
 
-        var children = node.next;
-        if (children === undefined) {
-            return;
+        return result;
+    }
+
+    function drawNode(id, depth, visited, parent) {
+
+        if (depth > 50) {
+            throw new Error("Ooops");
         }
 
+        var i, groups = [], bbox, label, count, left, child;
+        var node = process.flow[id];
+
+        label = drawLabel(node, id, parent);
+
+        var children = node.next;
         if (id in visited) {
-            labelGroup.classList.add("loop");
-            return;
+            label.classList.add("loop");
+            children = undefined;
         }
+
         if (id !== "end") {
             visited[id] = true;
         }
 
-        for (i = 0; i < children.length; i += 1) {
-            groups.push(svg.startGroup());
-            drawNode(children[i], depth + 1, Object.assign(visited), id);
-            svg.endGroup();
-        }
-        for (i = 0; i < groups.length; i += 1) {
-            if (i > 0) {
-                bbox = groups[i - 1].getBoundingClientRect();
-                groups[i].setAttribute("transform", "translate(" + bbox.right + "," + (SPACING * 1.5) + ")");
-            } else {
-                groups[i].setAttribute("transform", "translate(" + 0 + "," + (SPACING * 1.5) + ")");
+        count = 0;        
+        if (children !== undefined) {
+
+            for (i = 0; i < children.length; i += 1) {
+                child = {};
+                child.group = svg.startGroup("class", "outer");
+                child.count = drawNode(children[i], depth + 1, Object.assign(visited), id);
+                svg.endGroup();
+
+                count += child.count;
+                groups.push(child);
+            }
+            
+            for (i = 0; i < groups.length; i += 1) {
+                child = groups[i];
+                left = (count * SPACING * 1.1 * i) / Math.max(1, child.count);
+                child.group.setAttribute("transform", "translate(" + left + "," + (SPACING * 1.5) + ")");
             }
         }
 
-        parentGroup = svg.getGroup();
-        if (children.length > 1 && parentGroup !== undefined) {
-            bbox = labelGroup.getBoundingClientRect();
-            labelGroup.setAttribute("transform", "translate(" + (parentGroup.getBoundingClientRect().width / 2 - bbox.width / 2) + ", 0)");
-        }
-        return;
+        bbox = label.getBoundingClientRect();
+        left = (Math.max(1, count) * SPACING * 1.1) - (bbox.width / 2);
+        label.setAttribute("transform", "translate(" + left + ", 0)");
+
+        console.log("    ", id, depth, count);
+        return Math.max(1, count);
     }
 
     function drawEdges() {
@@ -406,10 +421,7 @@ $(function () {
             $(this).popover(options);
         });
 
-
-
-
-        svgNode.addEventListener("mousedown", mouseDownHandler);
+        //     svgNode.addEventListener("mousedown", mouseDownHandler);
 
         $(svgNode).on("mouseover", ".loop", function () {
             var id = this.dataset.id;
