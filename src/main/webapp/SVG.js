@@ -7,6 +7,9 @@ window.SVG = function (options) {
     var groupStack = [];
 
     var svg = buildElement("svg", "width", ("width" in options ? options.width : 640), "height", ("height" in options ? options.height : 480));
+    
+    var defs = undefined;    
+
 
     function buildElement(name) {
         var i;
@@ -30,6 +33,31 @@ window.SVG = function (options) {
             svg.appendChild(el);
         }
         return el;
+    }
+    
+    function addToDefs(el) {
+        if (defs === undefined) {
+            defs = buildElement("defs");
+            svg.appendChild(defs);
+        }
+        
+        defs.appendChild(el);        
+    }
+    
+    function buildLinearGradient(id, stops) {
+        var i, stop, key, value;
+        var grad = buildElement("linearGradient", "id", id);
+        for (i = 0; i < stops.length; i += 1) { 
+            stop = buildElement("stop");
+            for (key in stops[i]) {
+                value = stops[i][key];
+                stop.setAttribute(key, value);
+            }
+            grad.appendChild(stop);
+        }
+        
+        addToDefs(grad);      
+        return grad;
     }
 
     function buildTitle(text) {
@@ -109,6 +137,7 @@ window.SVG = function (options) {
         startGroup: createGroup,
         getGroup: getGroup,
         endGroup: leaveGroup,
+        createLinearGradient: buildLinearGradient,
         add: add,
         getSVG, svg
     };

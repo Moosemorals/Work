@@ -6,17 +6,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <div><button id="button">Click me</button></div>
-        <script>
-
-function openTarget() {
-    var html = "<!DOCTYPE html><html><head><title>Second window</title></head><body><h1 id='title'>Hello, world</h1></body></html>";
-    var data = "data:text/html," +encodeURIComponent(html);
-    var target = window.open(data, "_blank");
-}
-
-document.getElementById("button").addEventListener("click", openTarget, false);
-            
-        </script>
+        <article>
+            <h1>Things</h1>
+            <ul>
+                <li><a href="tree2.html">Trying to draw a tree</a>.</li>
+                <li><a href="christmas/">Trying to draw a Christmas tree</a>. A wildly different project.</li>
+            </ul>
+        </article>
     </body>
 </html>

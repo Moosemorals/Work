@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>SVG Trees</title>
+        <title>Happy Christmas</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
         <style type="text/css">
+
             .flash {
                 animation: flash 0.4s infinite cubic-bezier(0.645, 0.045, 0.355, 1);
             }
@@ -15,6 +16,19 @@
                     opacity: 0;
                 }
             }
+
+            .twinkle {
+                animation: twinkle 30s infinite cubic-bezier(0.645, 0.045, 0.355, 1);                
+            }
+
+            @keyframes twinkle {
+                48% { opacity: 1; }
+                50% {
+                    opacity: 0;
+                }
+                52% { opacity: 1; }
+            }
+
         </style>
     </head>
     <body>
@@ -28,7 +42,7 @@
         crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-        <script src="SVG.js"></script>
+        <script src="../SVG.js"></script>
         <script src="christmas.js"></script>
     </body>
 </html>
