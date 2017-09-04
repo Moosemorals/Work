@@ -403,26 +403,6 @@ $(function () {
         svgNode.setAttribute("width", bbox.width);
         svgNode.setAttribute("height", bbox.height);
 
-        $(svgNode).find(".label").each(function () {
-            var node = process.flow[this.dataset.id];
-            var type = node.type.substring(0, node.type.length - "Stanza".length);
-            var options = {
-                title: type,
-                trigger: "hover",
-                delay: {show: 2000, hide: 300}
-            };
-
-            if (type !== "End") {
-                options.content = lookupText(node.text);
-            } else {
-                options.template = '<div class="popover" role="tooltip"><div class="popover-arrow"></div><h3 class="popover-title"></h3></div>';
-            }
-
-            $(this).popover(options);
-        });
-
-        //     svgNode.addEventListener("mousedown", mouseDownHandler);
-
         $(svgNode).on("mouseover", ".loop", function () {
             var id = this.dataset.id;
             $(svgNode).find(".id-" + id).addClass("flash");

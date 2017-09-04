@@ -148,6 +148,23 @@
             "stack": true
         },
         "16": {
+            "type": "QuestionStanza",
+            "text": 27,
+            "answers": [1, 2],
+            "next": [
+                "25", "26"
+            ],
+            "stack": true
+        },
+        "25": {
+            "type": "InstructionStanza",
+            "text": 27,
+            "next": [
+                "end"
+            ],
+            "stack": true
+        },
+        "26": {
             "type": "InstructionStanza",
             "text": 27,
             "next": [
