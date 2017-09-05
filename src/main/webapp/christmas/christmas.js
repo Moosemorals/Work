@@ -62,6 +62,31 @@ window.Christmas = (function () {
         }
         svg.endGroup();
     }
+    
+    function drawSnow(width, height) {
+        var i, flake;
+        var flakeTypes = ["\u2744", "\u2745", "\u2746"];
+        var flakes = [];
+        
+        for (i =0; i < flakeTypes.length; i += 1) {
+            flake = svg.drawText(0, 0, flakeTypes[i]);
+            flake.setAttribute("id", flakeTypes[i]);
+            svg.addDef(flake);
+        }
+        
+        svg.startGroup("class", "snowflakes", "fill", "white");
+        for (i = 0; i < 300; i += 1) {
+            svg.addUse("#\u2744", Math.random() * width, Math.random() * height);
+        }
+        svg.endGroup();
+        
+        setInterval(function () {
+            for (i =0 ; i < flakes.length; i += 1) {
+                flakes[i].setAttribute("class", "snowflake");
+            }
+        }, 25);
+        
+    }
 
     function drawBackground(width, height) {
         var i, star, y;
@@ -114,6 +139,7 @@ window.Christmas = (function () {
         var cords = [];
 
         drawBackground(width, height);
+        drawSnow(width, height);
 
         for (row = 0; row < rows; row += 1) {
             for (col = -1; col < cols + 2; col += 1) {

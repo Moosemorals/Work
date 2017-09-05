@@ -44,6 +44,21 @@ window.SVG = function (options) {
         defs.appendChild(el);        
     }
     
+    function addUse(href, x, y, width, height) {
+        var use = buildElement("use", "x", x, "y", y);
+        
+        if (width !== undefined && height !== undefined) {
+            use.setAttribute("width", width);
+            use.setAttribute("height", height);
+        }
+        
+        use.setAttributeNS("http://www.w3.org/1999/xlink", "href", href);        
+        
+        _add(use);
+        
+        return use;
+    }
+    
     function buildLinearGradient(id, stops) {
         var i, stop, key, value;
         var grad = buildElement("linearGradient", "id", id);
@@ -58,7 +73,7 @@ window.SVG = function (options) {
         
         addToDefs(grad);      
         return grad;
-    }
+    }        
 
     function buildTitle(text) {
         var title = document.createElement("title");
@@ -138,6 +153,8 @@ window.SVG = function (options) {
         getGroup: getGroup,
         endGroup: leaveGroup,
         createLinearGradient: buildLinearGradient,
+        addDef: addToDefs,
+        addUse: addUse,
         add: add,
         getSVG, svg
     };
