@@ -1,7 +1,7 @@
 
 window.Christmas = (function () {
     "use strict";
-    var svg = SVG({width: 640, height: 640});
+    var svg = SVG({width: "100%", height: "100%"});
     var svgNode = svg.getSVG();
 
     // Adapted from https://stackoverflow.com/a/39187274/195833
@@ -67,8 +67,9 @@ window.Christmas = (function () {
         var i, star, y;
         var grad = svg.createLinearGradient("background", [
             {offset: "20%", "stop-color": "#98641E"},
-            {offset: "25%", "stop-color": "white"},
-            {offset: "30%", "stop-color": "black"}
+            {offset: "25%", "stop-color": "#505050"},
+            {offset: "55%", "stop-color": "#303030"},
+            {offset: "80%", "stop-color": "black"}
         ]);
 
         grad.setAttribute("x1", "50%");
@@ -100,7 +101,7 @@ window.Christmas = (function () {
 
     function init() {
         var row, col, fill, scale, cord, i, bbox, rows, cols;
-        var colSpacing = 100;
+        var colSpacing = 200;
         document.querySelector("#holder").appendChild(svgNode);
         bbox = svgNode.getBoundingClientRect();
 
@@ -118,7 +119,7 @@ window.Christmas = (function () {
             for (col = -1; col < cols + 2; col += 1) {
                 cords.push({
                     x: gaussianRand(6) * 5 + col * colSpacing + colSpacing * ((col > cols / 2 ? -row : row) / rows),
-                    y: height - 80,
+                    y: height - (height / 7),
                     col: col,
                     row: row
                 });
