@@ -67,8 +67,8 @@ window.Christmas = (function () {
         var i, star, y;
         var grad = svg.createLinearGradient("background", [
             {offset: "20%", "stop-color": "#98641E"},
-            {offset: "25%", "stop-color": "#505050"},
-            {offset: "55%", "stop-color": "#303030"},
+            {offset: "25%", "stop-color": "#303030"},
+            {offset: "65%", "stop-color": "#202020"},
             {offset: "80%", "stop-color": "black"}
         ]);
 
