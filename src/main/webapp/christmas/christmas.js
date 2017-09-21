@@ -62,36 +62,36 @@ window.Christmas = (function () {
         }
         svg.endGroup();
     }
-    
+
     function drawSnow(width, height) {
         var i, flake;
         var flakeTypes = ["\u2744", "\u2745", "\u2746"];
         var flakes = [];
-        
+
         for (i =0; i < flakeTypes.length; i += 1) {
             flake = svg.drawText(0, 0, flakeTypes[i]);
             flake.setAttribute("id", flakeTypes[i]);
             svg.addDef(flake);
         }
-        
+
         svg.startGroup("class", "snowflakes", "fill", "white");
         for (i = 0; i < 300; i += 1) {
             svg.addUse("#\u2744", Math.random() * width, Math.random() * height);
         }
         svg.endGroup();
-        
+
         setInterval(function () {
             for (i =0 ; i < flakes.length; i += 1) {
                 flakes[i].setAttribute("class", "snowflake");
             }
         }, 25);
-        
+
     }
 
     function drawBackground(width, height) {
-        var i, star, y;
+        var i, star, y, scale;
         var grad = svg.createLinearGradient("background", [
-            {offset: "20%", "stop-color": "#98641E"},
+            {offset: "20%", "stop-color": "#FFFAFA"},
             {offset: "25%", "stop-color": "#303030"},
             {offset: "65%", "stop-color": "#202020"},
             {offset: "80%", "stop-color": "black"}
@@ -107,18 +107,20 @@ window.Christmas = (function () {
         svg.endGroup();
 
         svg.startGroup("fill", "yellow");
-        for (i = 0; i < 300; i += 1) {
-            y = gaussianRand(6);                        
+        for (i = 0; i < 200; i += 1) {
+            y = gaussianRand(6);
             y = (y * 2 * height) - height;
             if (y < 0) {
                 y = -y;
             }
-            
+
+            scale = Math.random() * 0.3;
+
             svg.startGroup("transform", "translate(" + Math.random() * width + "," + y + ")");
-            star = svg.drawText(0, 0, "\u2605");
-            star.setAttribute("transform", "scale(0.2, 0.2)");
+            star = svg.drawStar(10, 20, Math.round(Math.random() * 3) + 5);
+            star.setAttribute("transform", "scale(" + scale + "," + scale + ") rotate(" + Math.round(Math.random() * 360) + ")");
             star.setAttribute("class", "twinkle");
-            star.setAttribute("style", "animation-delay: " + Math.random() * 30 + "s");
+            star.setAttribute("style", "animation-delay: " + Math.random() * 3 + "s");
             svg.endGroup();
         }
         svg.endGroup();
@@ -139,7 +141,7 @@ window.Christmas = (function () {
         var cords = [];
 
         drawBackground(width, height);
-        drawSnow(width, height);
+      //  drawSnow(width, height);
 
         for (row = 0; row < rows; row += 1) {
             for (col = -1; col < cols + 2; col += 1) {

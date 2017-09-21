@@ -7,8 +7,8 @@ window.SVG = function (options) {
     var groupStack = [];
 
     var svg = buildElement("svg", "width", ("width" in options ? options.width : 640), "height", ("height" in options ? options.height : 480));
-    
-    var defs = undefined;    
+
+    var defs = undefined;
 
 
     function buildElement(name) {
@@ -34,35 +34,35 @@ window.SVG = function (options) {
         }
         return el;
     }
-    
+
     function addToDefs(el) {
         if (defs === undefined) {
             defs = buildElement("defs");
             svg.appendChild(defs);
         }
-        
-        defs.appendChild(el);        
+
+        defs.appendChild(el);
     }
-    
+
     function addUse(href, x, y, width, height) {
         var use = buildElement("use", "x", x, "y", y);
-        
+
         if (width !== undefined && height !== undefined) {
             use.setAttribute("width", width);
             use.setAttribute("height", height);
         }
-        
-        use.setAttributeNS("http://www.w3.org/1999/xlink", "href", href);        
-        
+
+        use.setAttributeNS("http://www.w3.org/1999/xlink", "href", href);
+
         _add(use);
-        
+
         return use;
     }
-    
+
     function buildLinearGradient(id, stops) {
         var i, stop, key, value;
         var grad = buildElement("linearGradient", "id", id);
-        for (i = 0; i < stops.length; i += 1) { 
+        for (i = 0; i < stops.length; i += 1) {
             stop = buildElement("stop");
             for (key in stops[i]) {
                 value = stops[i][key];
@@ -70,10 +70,10 @@ window.SVG = function (options) {
             }
             grad.appendChild(stop);
         }
-        
-        addToDefs(grad);      
+
+        addToDefs(grad);
         return grad;
-    }        
+    }
 
     function buildTitle(text) {
         var title = document.createElement("title");
@@ -103,6 +103,28 @@ window.SVG = function (options) {
         var text = buildElement("text", "x", x, "y", y);
         text.appendChild(document.createTextNode(string));
         return _add(text);
+    }
+
+    function addStar(r1, r2, sides) {
+        var path = [], i, sweep, x, y;
+
+        sweep = Math.PI / sides;
+
+        path.push("M", r1, 0);
+
+        for (i = 0; i < sides * 2; i += 2) {
+            x = r1 * Math.cos(i * sweep);
+            y = r1 * Math.sin(i * sweep)
+            path.push("L", x.toFixed(3) , y.toFixed(3) );
+            x = r2 * Math.cos((i + 1) * sweep);
+            y = r2 * Math.sin((i + 1) * sweep)
+            path.push("L", x.toFixed(3), y.toFixed(3));
+        }
+
+        path.push("Z");
+
+        return addPath(path.join(" "));
+
     }
 
     function createGroup() {
@@ -149,6 +171,7 @@ window.SVG = function (options) {
         drawLine: addLine,
         drawText: addText,
         drawPath: addPath,
+        drawStar: addStar,
         startGroup: createGroup,
         getGroup: getGroup,
         endGroup: leaveGroup,
