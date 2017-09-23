@@ -3,15 +3,15 @@
     <head>
         <title>Happy Christmas</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">        
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style type="text/css">
-            
-            body {                
+
+            body {
                 display: flex;
                 justify-content: center;
                 align-content: center;
             }
-            
+
             #holder, body, html {
                 width: 90%;
                 height: 90%;
@@ -27,7 +27,7 @@
             }
 
             .twinkle {
-                animation: twinkle 30s infinite cubic-bezier(0.645, 0.045, 0.355, 1);                
+                animation: twinkle 15s infinite cubic-bezier(0.645, 0.045, 0.355, 1);
             }
 
             @keyframes twinkle {
@@ -36,12 +36,12 @@
                     opacity: 0;
                 }
                 52% { opacity: 1; }
-            }                        
-            
+            }
+
         </style>
     </head>
-    <body>        
-        <div id="holder"></div>        
+    <body>
+        <div id="holder"></div>
         <script src="../SVG.js" defer></script>
         <script src="christmas.js" defer></script>
     </body>

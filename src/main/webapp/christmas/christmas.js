@@ -1,8 +1,8 @@
-
 window.Christmas = (function () {
     "use strict";
-    var svg = SVG({width: "100%", height: "100%"});
+    var svg = SVG({width: 1000, height: 625});
     var svgNode = svg.getSVG();
+
 
     // Adapted from https://stackoverflow.com/a/39187274/195833
     function gaussianRand(n) {
@@ -68,7 +68,7 @@ window.Christmas = (function () {
         var flakeTypes = ["\u2744", "\u2745", "\u2746"];
         var flakes = [];
 
-        for (i =0; i < flakeTypes.length; i += 1) {
+        for (i = 0; i < flakeTypes.length; i += 1) {
             flake = svg.drawText(0, 0, flakeTypes[i]);
             flake.setAttribute("id", flakeTypes[i]);
             svg.addDef(flake);
@@ -81,7 +81,7 @@ window.Christmas = (function () {
         svg.endGroup();
 
         setInterval(function () {
-            for (i =0 ; i < flakes.length; i += 1) {
+            for (i = 0; i < flakes.length; i += 1) {
                 flakes[i].setAttribute("class", "snowflake");
             }
         }, 25);
@@ -89,7 +89,7 @@ window.Christmas = (function () {
     }
 
     function drawBackground(width, height) {
-        var i, star, y, scale;
+        var i, star, x, y, scale;
         var grad = svg.createLinearGradient("background", [
             {offset: "20%", "stop-color": "#FFFAFA"},
             {offset: "25%", "stop-color": "#303030"},
@@ -103,73 +103,78 @@ window.Christmas = (function () {
         grad.setAttribute("y2", "0%");
 
         svg.startGroup("fill", "url(#background)");
-        svg.drawPath(["M 0 0 L ", width, " 0 L ", width, height, " L 0 ", height, "Z"].join(" "));
+        svg.drawPath(["M", -width, -height, "L", width, -height, "L ", width, height, "L", -width, height, "Z"].join(" "));
         svg.endGroup();
 
         svg.startGroup("fill", "yellow");
         for (i = 0; i < 200; i += 1) {
             y = gaussianRand(6);
             y = (y * 2 * height) - height;
-            if (y < 0) {
+            if (y > 0) {
                 y = -y;
             }
+            y = -height - y;
 
-            scale = Math.random() * 0.3;
+            x = (Math.random() * 2 * width) - width;
+            scale = Math.random() * 0.1;
 
-            svg.startGroup("transform", "translate(" + Math.random() * width + "," + y + ")");
+            svg.startGroup("transform", "translate(" + x + "," + y + ")  scale(" + scale + "," + scale + ") rotate(" + Math.round(Math.random() * 360) + ")");
             star = svg.drawStar(10, 20, Math.round(Math.random() * 3) + 5);
-            star.setAttribute("transform", "scale(" + scale + "," + scale + ") rotate(" + Math.round(Math.random() * 360) + ")");
+
             star.setAttribute("class", "twinkle");
-            star.setAttribute("style", "animation-delay: " + Math.random() * 3 + "s");
+            star.setAttribute("style", "animation-delay: " + Math.random() * 15 + "s");
             svg.endGroup();
         }
         svg.endGroup();
     }
 
-    function init() {
-        var row, col, fill, scale, cord, i, bbox, rows, cols;
-        var colSpacing = 200;
-        document.querySelector("#holder").appendChild(svgNode);
-        bbox = svgNode.getBoundingClientRect();
+    function drawForrest(width, height) {
+        var scale, cord, i, fill, cords, x1, y1;
 
-        var width = bbox.width;
-        var height = bbox.height;
-
-        rows = 4;
-        cols = Math.floor(width / colSpacing);
-
-        var cords = [];
-
-        drawBackground(width, height);
-      //  drawSnow(width, height);
-
-        for (row = 0; row < rows; row += 1) {
-            for (col = -1; col < cols + 2; col += 1) {
-                cords.push({
-                    x: gaussianRand(6) * 5 + col * colSpacing + colSpacing * ((col > cols / 2 ? -row : row) / rows),
-                    y: height - (height / 7),
-                    col: col,
-                    row: row
-                });
-            }
+        cords = [];
+        for (i = 0; i < 150; i += 1) {
+            cords.push({
+                x: (gaussianRand(2) * 2 * width) - width,
+                y: (Math.random() * 2 * height) - height
+            });
         }
 
         cords.sort(function (a, b) {
-            if (a.row === b.row) {
-                return Math.random() - 0.5;
-            } else {
-                return b.row - a.row;
-            }
+            return a.y - b.y;
         });
 
         for (i = 0; i < cords.length; i += 1) {
             cord = cords[i];
+
+            x1 = 1.5 * (1 + cord.y / (2 * height)) * cord.x;
+            y1 = cord.y / 4 + 3 * height / 4;
+
             fill = gaussianRand(6) * 20 + 90;
-            scale = (height / 4) - cord.row * 5;
-            svg.startGroup("transform", "translate(" + cord.x + "," + cord.y + ") scale(" + scale + "," + scale + ")");
+            scale = (cord.y + height) / 250;
+
+            y1 -= 15 * scale;
+
+            svg.startGroup("transform", "translate(" + x1 + "," + y1 + ") scale(" + 40 * scale + "," + 40 * scale + ")");
             drawTree(fill);
+            //svg.drawStar(5, 15, 5);
+
             svg.endGroup();
         }
+
+    }
+
+    function init() {
+
+        document.querySelector("#holder").appendChild(svgNode);
+
+        var width = 160;
+        var height = 100;
+
+        svgNode.setAttribute("viewBox", [-width, -height, width * 2, height * 2].join(" "));
+
+        drawBackground(width, height);
+        //  drawSnow(width, height);
+        drawForrest(width, height);
     }
 
     init();
